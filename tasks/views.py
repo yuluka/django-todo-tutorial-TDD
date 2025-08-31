@@ -1,6 +1,7 @@
 import datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.utils import timezone
 from tasks.models import Task, Status
 
 
@@ -17,7 +18,10 @@ def parse_deadline(deadline_str: str) -> datetime.datetime | None:
     if not deadline_str:
         return None
     try:
-        return datetime.datetime.strptime(deadline_str.strip(), "%Y-%m-%d")
+        deadline = datetime.datetime.strptime(deadline_str.strip(), "%Y-%m-%d")
+        deadline = timezone.make_aware(deadline)
+
+        return deadline
     except ValueError:
         return None
 
@@ -44,3 +48,9 @@ def create_task(request):
         return redirect('home')
 
     return render(request, 'create_task.html')
+
+
+def list_tasks(request):
+    return render(request, 'list_tasks.html', {
+        'tasks': Task.objects.all(),
+    })
