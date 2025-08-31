@@ -68,3 +68,39 @@ class ListTasksViewTest(TestCase):
         # Verificamos que la tarea se muestre en la lista
         self.assertContains(response, "Aprender TDD")
         self.assertContains(response, "Seguir el tutorial paso a paso")
+
+
+class EditTaskViewTest(TestCase):
+    """
+    Test cases for edit_tasks view.
+    """
+
+    def setUp(self):
+        self.status = Status.objects.create(name="Pendiente")
+        
+        self.task = Task.objects.create(
+            name="Aprender TDD",
+            description="Seguir el tutorial paso a paso",
+            deadline=timezone.make_aware(datetime.datetime(2025, 9, 15)),
+            status_id=self.status,
+        )
+
+    def test_edit_task(self):
+        """
+        Test the edit_task endpoint.
+        """
+
+        response = self.client.post(
+            reverse("edit-task", args=[self.task.id]),
+            {
+                "task-name": "Aprender TDD - Modificado",
+                "task-description": "Seguir el tutorial paso a paso - Modificado",
+                "task-deadline": "2025-09-16",
+                "task-status": self.status.id,
+            },
+        )
+
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.name, "Aprender TDD - Modificado")
+        self.assertEqual(self.task.description, "Seguir el tutorial paso a paso - Modificado")
+        self.assertEqual(self.task.deadline, timezone.make_aware(datetime.datetime(2025, 9, 16)))
