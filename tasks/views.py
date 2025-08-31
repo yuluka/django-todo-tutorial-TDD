@@ -48,8 +48,7 @@ def create_task(request):
 
         messages.success(request, '¡Tarea creada exitosamente!')
 
-        # return redirect('list-tasks')
-        return redirect('home')
+        return redirect('list-tasks')
 
     return render(request, 'create_task.html')
 
