@@ -19,6 +19,10 @@
     - [Paso 1.5: Crear archivo `requirements.txt`](#paso-15-crear-archivo-requirementstxt)
     - [Paso 1.6: Crear proyecto Django](#paso-16-crear-proyecto-django)
   - [Paso 2: Entendimiento de los Archivos básicos de Django](#paso-2-entendimiento-de-los-archivos-básicos-de-django)
+    - [Paso 2.1: `manage.py`](#paso-21-managepy)
+    - [Paso 2.2: `settings.py`](#paso-22-settingspy)
+    - [Paso 2.3: `urls.py`](#paso-23-urlspy)
+    - [Paso 2.4: `wsgi.py` y `asgi.py`](#paso-24-wsgipy-y-asgipy)
   - [Paso 3: Creación de la Lógica del proyecto](#paso-3-creación-de-la-lógica-del-proyecto)
 
 ---
