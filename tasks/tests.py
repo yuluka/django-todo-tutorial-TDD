@@ -104,3 +104,31 @@ class EditTaskViewTest(TestCase):
         self.assertEqual(self.task.name, "Aprender TDD - Modificado")
         self.assertEqual(self.task.description, "Seguir el tutorial paso a paso - Modificado")
         self.assertEqual(self.task.deadline, timezone.make_aware(datetime.datetime(2025, 9, 16)))
+
+
+class DeleteTaskViewTest(TestCase):
+    """
+    Test cases for delete_task view.
+    """
+
+    def setUp(self):
+        self.status = Status.objects.create(name="Pendiente")
+        
+        self.task = Task.objects.create(
+            name="Aprender TDD",
+            description="Seguir el tutorial paso a paso",
+            deadline=timezone.make_aware(datetime.datetime(2025, 9, 15)),
+            status_id=self.status,
+        )
+
+    def test_delete_task(self):
+        """
+        Test the delete_task endpoint.
+        """
+
+        response = self.client.post(
+            reverse("delete-task", args=[self.task.id])
+        )
+
+        # Verificamos que la tarea haya sido eliminada
+        self.assertFalse(Task.objects.filter(id=self.task.id).exists())
