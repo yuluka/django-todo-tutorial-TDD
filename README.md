@@ -95,7 +95,9 @@ TDD se basa en un **ciclo llamado Red-Green-Refactor**, donde:
 
     La primera vez que ejecutes dicho test, dado que aún no existe esa función, obtendrás algo como:
 
-    ![Imagen pendiente]()
+    ![Fail test](docs/images/test_fail_example.png)
+
+    > **Nota:** Esta es, únicamente, una imagen de referencia. Es probable que en Django no se vean igual los tests fallidos (depende de la test suite que uses).
 
 - **Green**
 
@@ -114,7 +116,10 @@ TDD se basa en un **ciclo llamado Red-Green-Refactor**, donde:
 
     Ahora deberías obtener algo como:
 
-    ![Imagen pendiente]()
+    ![Test OK](docs/images/test_ok_example.png)
+
+    > **Nota:** Esta es, únicamente, una imagen de referencia. Es probable que en Django no se vean igual los tests exitosos (depende de la test suite que uses).
+
 
 - **Refactor**
 
@@ -1080,3 +1085,4 @@ Ahora podemos **volver a probar** que las pruebas sigan funcionando correctament
 
 ![Test OK](docs/images/test_ok2.png)
 
+El anterior es solo un ejemplo de un aspecto a mejorar en la fase de refactor. Te animo a buscar más y llevarlas a cabo.
