@@ -36,6 +36,10 @@
       - [Red: Implementación del test para _"Creación de Tareas"_](#red-implementación-del-test-para-creación-de-tareas)
       - [Green: Implementación de la funcionalidad para _"Creación de Tareas"_](#green-implementación-de-la-funcionalidad-para-creación-de-tareas)
       - [Refactor: Refactorización del código de la funcionalidad para _"Creación de Tareas"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-creación-de-tareas)
+    - [Paso 4.2: Funcionalidad para _"Ver lista de Tareas"_](#paso-42-funcionalidad-para-ver-lista-de-tareas)
+      - [Red: Implementación del test para _"Ver lista de Tareas"_](#red-implementación-del-test-para-ver-lista-de-tareas)
+      - [Green: Implementación de la funcionalidad para _"Ver lista de Tareas"_](#green-implementación-de-la-funcionalidad-para-ver-lista-de-tareas)
+      - [Refactor: Refactorización del código de la funcionalidad para _"Ver lista de Tareas"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-ver-lista-de-tareas)
 
 ---
 
@@ -943,6 +947,7 @@ De hecho, estos son los 3 pasos que tendrás que realizar para cada nueva pantal
     import datetime
     from django.shortcuts import render, redirect
     from django.contrib import messages
+    from django.utils import timezone
     from tasks.models import Task, Status
     ```
 
@@ -1054,7 +1059,10 @@ def parse_deadline(deadline_str: str) -> datetime.datetime | None:
     if not deadline_str:
         return None
     try:
-        return datetime.datetime.strptime(deadline_str.strip(), "%Y-%m-%d")
+        deadline = datetime.datetime.strptime(deadline_str.strip(), "%Y-%m-%d")
+        deadline = timezone.make_aware(deadline) # Evita el warning de time zone
+        
+        return deadline
     except ValueError:
         return None
 ```
@@ -1063,6 +1071,10 @@ Y modifica la función `create_task()` para que quede así:
 
 ```python
 def create_task(request):
+    """
+    Create a new task or render the creation form.
+    """
+    
     if request.method == 'POST':
         name: str = request.POST.get('task-name', '')
         description: str = request.POST.get('task-description', '').strip()
@@ -1090,3 +1102,251 @@ Ahora podemos **volver a probar** que las pruebas sigan funcionando correctament
 ![Test OK](docs/images/test_ok2.png)
 
 El anterior es solo un ejemplo de un aspecto a mejorar en la fase de refactor. Te animo a buscar más y llevarlas a cabo.
+
+---
+
+### Paso 4.2: Funcionalidad para _"Ver lista de Tareas"_
+
+La idea de esta funcionalidad es que puedas ver una lista de todas las tareas que hay creadas hasta el momento, para que sepas qué es lo que tienes pendiente por hacer.
+
+Con esta funcionalidad, y todas las demás, seguiremos el mismo proceso de la anterior: el ciclo Red-Green-Refactor sobre el que se basa la metodología TDD.
+
+
+#### Red: Implementación del test para _"Ver lista de Tareas"_
+
+Vamos a crear el test para la funcionalidad _"Ver lista de Tareas"_. Nuevamente, vamos a hacerlo dentro de [`tests.py`](tasks/tests.py).
+
+Debajo de todo lo hicimos en el paso anterior, crea un nuevo `TestCase` para la nueva funcionalidad así:
+
+```python
+class ListTasksViewTest(TestCase):
+    """
+    Test cases for list_tasks view.
+    """
+
+    def setUp(self):
+        self.status = Status.objects.create(name="Pendiente")
+
+    def test_list_tasks(self):
+        """
+        Test the list_tasks endpoint.
+        """
+
+        # Crear una tarea para listar
+        Task.objects.create(
+            name="Aprender TDD",
+            description="Seguir el tutorial paso a paso",
+            deadline=timezone.make_aware(datetime.datetime(2025, 9, 15)),
+            status_id=self.status,
+        )
+
+        response = self.client.get(reverse("list-tasks"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "list_tasks.html")
+
+        # Verificamos que la tarea se muestre en la lista
+        self.assertContains(response, "Aprender TDD")
+        self.assertContains(response, "Seguir el tutorial paso a paso")
+```
+
+Este test se encarga de crear una tarea para mostrar en el listado, y después verifica que la funcionalidad responda bien, que use la plantilla HTML correcta, y que muestre la información de la tarea creada.
+
+Puedes ejecutar las pruebas para que veas lo que sucede ahora que tienes más de un test:
+
+```bash
+python manage.py test
+```
+
+![Test Fail](docs/images/test_fail2.png)
+
+En tu resultado verás que se detectaron y ejecutaron 2 tests (`Found 2 test(s).` y `Ran 2 tests in 0.025s`), y que uno de ellos falló (`FAILED (errors=1)`). El test que falló fue este que acabas de crear.
+
+> **Nota:** Nuevamente, te insto a que pienses en otras situaciones posibles, y crees más tests.
+
+
+#### Green: Implementación de la funcionalidad para _"Ver lista de Tareas"_
+
+Ahora tienes que crear la funcionalidad para que tus tests pasen exitosamente. Para ello, debes **repetir los mismos pasos que seguiste en la fase [Green: Implementación de la funcionalidad para _"Creación de Tareas"_](#green-implementación-de-la-funcionalidad-para-creación-de-tareas)**.
+
+- **Crear vista**:
+
+    Ve a [`views.py`](tasks/views.py) y define la vista con la que se renderizará la pantalla de listado de tareas:
+
+    ```python
+    def list_tasks(request):
+        return render(request, 'list_tasks.html', {
+            'tasks': Task.objects.all(),
+        })
+    ```
+
+- **Crear la pantalla HTML**:
+
+    Ve a [`templates/`](tasks/templates/) y crea un archivo con el nombre `list_tasks.html`.
+
+    Dentro de este archivo, pon el código:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block content %}
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <title>Lista de Tareas</title>
+    </head>
+    <body class="bg-light">
+
+        <div class="container mt-5">
+            <h2 class="mb-4">Lista de Tareas</h2>
+
+            {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if tasks %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Estado</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Fecha Límite</th>
+                                <th>Creado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>{{ task.id }}</td>
+                                <td>{{ task.status_id.name }}</td>
+                                <td>{{ task.name }}</td>
+                                <td>{{ task.description }}</td>
+                                <td>{{ task.deadline|default:"No definida" }}</td>
+                                <td>{{ task.created_at|date:"F j, Y, g:i A" }}</td>
+                                <td>
+                                    <a href="{% url 'edit-task' task.id %}" class="btn btn-warning btn-sm">Editar</a>
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-task-id="{{ task.id }}">
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">No hay tareas registradas.</div>
+            {% endif %}
+
+            <a href="{% url 'create-task' %}" class="btn btn-primary mt-3">Crear Nueva Tarea</a>
+        </div>
+
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que quieres eliminar esta tarea?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form id="delete-form" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                        </form>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var deleteModal = document.getElementById("deleteModal");
+
+                deleteModal.addEventListener("show.bs.modal", function(event) {
+                    var button = event.relatedTarget;  
+                    var taskId = button.getAttribute("data-task-id");
+
+                    var form = document.getElementById("delete-form");
+                    form.action = `/delete-task/${taskId}/`;
+                });
+            });
+        </script>
+
+    </body>
+    </html>
+    {% endblock content %}
+    ```
+
+- Registrar URL:
+
+    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
+
+    ```python
+    path('list-tasks/', views.list_tasks, name='list-tasks'),
+    ```
+
+Ahora puedes volver a ejecutar tus tests, para que observes como pasan exitosamente. Sin embargo, antes de hacerlo, debes reemplazar en el [template](tasks/templates/list_tasks.html):
+
+```html
+<a href="{% url 'edit-task' task.id %}" class="btn btn-warning btn-sm">Editar</a>
+```
+
+por
+
+```html
+<a href="" class="btn btn-warning btn-sm">Editar</a>
+```
+
+Esto, porque el servicio `edit-task` no existe aún, por lo que lanzará un error si lo ejecutas sin hacer el reemplazo. Ahora sí, ejecuta las pruebas:
+
+```python
+python manage.py test
+```
+
+![Test OK](docs/images/test_ok2.png)
+
+> **Nota:** **NO OLVIDES** volverlo a cambiar por `<a href="{% url 'edit-task' task.id %}" class="btn btn-warning btn-sm">Editar</a>` cuando termines de hacer la prueba. 
+
+
+#### Refactor: Refactorización del código de la funcionalidad para _"Ver lista de Tareas"_
+
+Debido a la simplicidad del código de esta funcionalidad, no hay mucho que hacer para refactorizarlo. Sin embargo, pueden hacerse cosas como mejorar el estilo.
+
+Ej: **Mejorar estilo de la función `list_tasks()`**:
+
+Para mejorar la legibilidad del código, podemos hacer que tenga un mejor estilo. Para ello, modifica `list_tasks()` para que quede así:
+
+```python
+def list_tasks(request):
+    """
+    List all tasks.
+    """
+
+    return render(
+        request, 
+        'list_tasks.html', 
+        {
+            'tasks': Task.objects.all(),
+        },
+    )
+```
+
+Ahora el código se ve mucho mejor, y es más legible para cualquier persona que desee analizarlo.
+
+> **Nota:** Siempre es buena idea volver a ejecutar las pruebas después de esta fase, para asegurarte de que los cambios no hayan modificado el comportamiento de la funcionalidad.
+
+---
