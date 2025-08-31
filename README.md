@@ -446,6 +446,6 @@ Para hacer esto, debes:
 - Agregar un elemento a la lista `urlpatterns`, usando la función `include()`, de la siguiente manera:
 
     ```python
-    path('', include(tasks.urls)),
+    path('', include('tasks.urls')),
     ```
 
