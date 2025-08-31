@@ -32,6 +32,10 @@
     - [Paso 3.7: Crear modelo para Tareas](#paso-37-crear-modelo-para-tareas)
     - [Paso 3.8: Usar panel de administración](#paso-38-usar-panel-de-administración)
   - [Paso 4: Implementación de funcionalidades](#paso-4-implementación-de-funcionalidades)
+    - [Paso 4.1: Funcionalidad para _"Creación de Tareas"_](#paso-41-funcionalidad-para-creación-de-tareas)
+      - [Red: Implementación del test para _"Creación de Tareas"_](#red-implementación-del-test-para-creación-de-tareas)
+      - [Green: Implementación de la funcionalidad para _"Creación de Tareas"_](#green-implementación-de-la-funcionalidad-para-creación-de-tareas)
+      - [Refactor: Refactorización del código de la funcionalidad para _"Creación de Tareas"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-creación-de-tareas)
 
 ---
 
@@ -1031,7 +1035,7 @@ Esta vez, deberían pasar exitosamente con algo así:
 > **Nota:** **NO OLVIDES** volverlo a cambiar por `return redirect('list-tasks')` cuando termines de hacer la prueba. 
 
 
-### Refactor
+#### Refactor: Refactorización del código de la funcionalidad para _"Creación de Tareas"_
 
 Ya es hora de pasar a la última fase del ciclo de TDD. En esta fase, debemos procurar mejorar el código, sin cambiar su funcionamiento.
 
