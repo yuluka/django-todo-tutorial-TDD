@@ -379,7 +379,8 @@ Estos archivos son puntos de entrada para que servidores web ejecuten el proyect
 
 ### Paso 3: Creación de la Lógica del proyecto
 
-1. Crear aplicación
+
+#### Paso 3.1: Crear aplicación
 
 En Django, los proyectos se estructuran en módulos llamados aplicaciones. Cada aplicación gestiona una parte específica de la lógica del proyecto y, en muchos casos, puede reutilizarse en otros proyectos si es necesario.
 
@@ -403,7 +404,8 @@ Cada aplicación del proyecto tiene una estructura de archivos propia, que le pe
 - [`views.py`](tasks/views.py): Contiene la lógica de negocio de la aplicación. Es donde se definen las vistas, que son funciones o clases que procesan solicitudes y devuelven respuestas.
 - [`urls.py`](tasks/urls.py): No se crea por defecto, pero es recomendable crearlo y usarlo para cada aplicación. Tiene la misma función que el `urls.py` general.
 
-2. Agregar aplicación al proyecto
+
+#### Paso 3.2: Agregar aplicación al proyecto
 
 Una vez que has creado una aplicación, es necesario registrarla en la configuración del proyecto para que Django la reconozca y pueda utilizarla.
 
@@ -413,7 +415,8 @@ Para agregarla, debes:
 - Buscar la lista llamada `INSTALLED_APPS`.
 - Agregar un elemento con el nombre de la app que quieres registrar. En este caso sería `'tasks'`.
 
-3. Incluir URLs de la aplicación en el proyecto
+
+#### Paso 3.3: Incluir URLs de la aplicación en el proyecto
 
 Cuando cada aplicación maneja sus propias rutas en su propio archivo `urls.py`, es necesario incluirlas en el archivo de URLs principal del proyecto para que Django las reconozca.
 
