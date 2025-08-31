@@ -97,3 +97,15 @@ def edit_task(request, task_id):
             'task_statuses': Status.objects.all(),
         }
     )
+
+
+def delete_task(request, task_id):
+    """
+    Delete an existing task.
+    """
+
+    Task.objects.get(id=task_id).delete()
+
+    messages.success(request, '¡Tarea eliminada exitosamente!')
+
+    return redirect('list-tasks')
