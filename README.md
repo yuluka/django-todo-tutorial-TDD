@@ -216,6 +216,7 @@ python --version
 
 Para inicializar el proyecto deberás seguir estos pasos:
 
+---
 
 #### Paso 1.1: Crear entorno virtual de Python
 
@@ -229,6 +230,7 @@ python -m venv venv
 
 > **Nota:** El entorno puede tener el nombre que desees. En este caso, uso `venv` por convención. Además, es necesario que crees el entorno en la carpeta raíz del proyecto.
 
+---
 
 #### Paso 1.2: Activar el entorno virtual
 
@@ -242,6 +244,7 @@ Usa este comando para activarlo:
 
 > **Nota:** Reempla `venv` con el nombre que hayas escogido para tu entorno.
 
+---
 
 #### Paso 1.3: Seleccionar Python Interpreter
 
@@ -254,6 +257,7 @@ En Visual Studio Code (VS Code) debes hacer lo siguiente:
 - Buscar el intérprete correspondiente al entorno creado. Suele estar marcado con la palabra `Recommended`.
 - Seleccionar el intérprete.
 
+---
 
 #### Paso 1.4: Instalar dependencias necesarias
 
@@ -273,6 +277,7 @@ Ahora puedes verificar la versión instalada de Django usando el comando:
 django-admin --version
 ```
 
+---
 
 #### Paso 1.5: Crear archivo `requirements.txt`
 
@@ -294,6 +299,7 @@ Para instalar las dependencias desde el archivo (en otra máquina, por ejemplo):
 pip install -r requirements.txt
 ```
 
+---
 
 #### Paso 1.6: Crear proyecto Django
 
@@ -324,6 +330,7 @@ Al abrir la URL, deberías ver algo así:
 
 Al crear un proyecto en Django, se genera una estructura de archivos que permite su correcto funcionamiento. A continuación, te explico el propósito de cada uno:
 
+---
 
 #### Paso 2.1: [`manage.py`](manage.py)
 
@@ -331,6 +338,7 @@ Este archivo es el punto de entrada para interactuar con el proyecto desde la l�
 
 De hecho, ya lo usaste, en el último paso de la sección anterior, para ejecutar el proyecto.
 
+---
 
 #### Paso 2.2: [`settings.py`](todo_app/settings.py)
 
@@ -359,6 +367,7 @@ DATABASES = {
 }
 ```
 
+---
 
 #### Paso 2.3: [`urls.py`](todo_app/urls.py)
 
@@ -366,6 +375,7 @@ En este archivo se definen las rutas del proyecto. Básicamente, se define la vi
 
 Incialmente, este archivo contiene la ruta al panel de administración: `/admin/`. Las nuevas rutas se deben agregar a la lista `urlpatterns`.
 
+---
 
 #### Paso 2.4: `wsgi.py` y `asgi.py`
 
@@ -379,6 +389,7 @@ Estos archivos son puntos de entrada para que servidores web ejecuten el proyect
 
 ### Paso 3: Creación de la Lógica del proyecto
 
+---
 
 #### Paso 3.1: Crear aplicación
 
@@ -404,6 +415,7 @@ Cada aplicación del proyecto tiene una estructura de archivos propia, que le pe
 - [`views.py`](tasks/views.py): Contiene la lógica de negocio de la aplicación. Es donde se definen las vistas, que son funciones o clases que procesan solicitudes y devuelven respuestas.
 - [`urls.py`](tasks/urls.py): No se crea por defecto, pero es recomendable crearlo y usarlo para cada aplicación. Tiene la misma función que el `urls.py` general.
 
+---
 
 #### Paso 3.2: Agregar aplicación al proyecto
 
@@ -415,6 +427,7 @@ Para agregarla, debes:
 - Buscar la lista llamada `INSTALLED_APPS`.
 - Agregar un elemento con el nombre de la app que quieres registrar. En este caso sería `'tasks'`.
 
+---
 
 #### Paso 3.3: Incluir URLs de la aplicación en el proyecto
 
