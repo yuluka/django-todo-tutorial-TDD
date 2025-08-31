@@ -794,4 +794,289 @@ Ya cuentas con lo básico que necesitarás para el desarrollo del proyecto. Por 
 
 ---
 
-###
+### Paso 4.1: Funcionalidad para _"Creación de Tareas"_
+
+La idea de esta funcionalidad es que puedas crear nuevas tareas desde la interfaz de tu propia aplicación, en lugar de tener que hacerlo desde el panel de administrador.
+
+Como estamos **trabajando con la metodología TDD**, vamos a **seguir el ciclo Red-Green-Refactor** del que te hablé al incio del tutorial:
+
+
+#### Red: Implementación del test para _"Creación de Tareas"_
+
+Seguro recuerdas que esta fase del ciclo es donde debes crear el test para la funcionalidad que quieres implementar (_"Creación de Tareas"_ en este caso). Para este propósito, debes:
+
+- **Dirígete al archivo de pruebas del módulo `tasks`: [`tests.py`](tasks/tests.py)**
+
+    Este archivo te servirá para almacenar las pruebas unitarias de las funcionalidades del proyecto. Inicialmente, verás algo así:
+
+    ```python
+    from django.test import TestCase
+
+    # Create your tests here.
+    ```
+
+    `TestCase` es la clase de Django más usada para la realización de pruebas unitarias. Por supuesto que podrías usar otras opciones como `pytest` o `unittest`, pero es mejor que uses `django.test.TestCase` en los proyectos de Django.
+
+- **Importar los modelos `Task` y `Status`**
+    
+    Para poder probar la funcionalidad de _"Creación de Tareas"_ debes importar los modelos de datos [`Task` y `Status`](tasks/models.py) que creaste para la interacción con la base de datos.
+
+    Escribe lo siguiente en el archivo [`tests.py`](tasks/tests.py):
+
+    ```python
+    from .models import Task, Status
+    ```
+
+    Además de los modelos, hay un par de clases extra que debes importar para poder hacer tu test de forma correcta:
+
+    ```python
+    import datetime
+    from django.urls import reverse
+    from django.utils import timezone
+    ```
+
+- **Crear el caso de prueba**
+
+    Ahora sí puedes crear el test o caso de prueba:
+
+    ```python
+    class CreateTaskViewTest(TestCase):
+        """
+        Test cases for create_task view.
+        """
+
+        def setUp(self):
+            self.status = Status.objects.create(name="Pendiente")
+
+        def test_create_task(self):
+            """
+            Test the create_task endpoint.
+            """
+
+            response = self.client.post(reverse("create-task"), {
+                "task-name": "Aprender TDD",
+                "task-description": "Seguir el tutorial paso a paso",
+                "task-deadline": "2025-09-15",
+            })
+
+            # Verificamos que la tarea se haya guardado en la BD con la información correcta
+            task = Task.objects.first()
+            self.assertIsNotNone(task)
+            self.assertEqual(task.name, "Aprender TDD")
+            self.assertEqual(task.description, "Seguir el tutorial paso a paso")
+
+            expected_date = timezone.make_aware(datetime.datetime(2025, 9, 15))
+            self.assertEqual(task.deadline, expected_date)
+            self.assertEqual(task.status_id, self.status)
+    ```
+
+    Acá es importante que sepas que `setUp(self)` se ejecuta siempre que ejecutes las pruebas unitarias, y se usa para que establezcas el escenario incial que deseas en tus casos de prueba.
+
+    Además, el nombre de cada caso de prueba debe iniciar, obligatoriamente, con `test_`. Esto es así porque es la manera que usa Django para identificar que esa función se trata de un test.
+
+Muy bien, pues ya has creado tu test para probar la funcionalidad de _"Creación de Tareas"_. Ahora puedes ejecutarlo para que veas lo que sucede si aún no has implementado dicha funcionalidad:
+
+```bash
+python manage.py test
+```
+
+Después de eso, verás que **fallará** con algo como:
+
+![Test Fail](docs/images/test_fail1.png)
+
+> **Nota:** Si lo deseas, puedes crear más tests que prueben otras situaciones (como cuando se asigna un deadline inválido, o cuando no se le pasa algún parámetro, por ejemplo).
+
+
+#### Green: Implementación de la funcionalidad para _"Creación de Tareas"_
+
+Ya que has creado tus tests, puedes pasar a la acción: Implementar la funcionalidad. El proceso para hacer esto es, esencialmente, el mismo que seguiste para poder renderizar la pantalla principal: 1) crear una vista que se encargue de procesar las solicitudes y devolver las respuestas, 2) crear el archivo HTML con el contenido que se renderizará, y 3) registrar la URL con la que se podrá acceder a la nueva pantalla.
+
+De hecho, estos son los 3 pasos que tendrás que realizar para cada nueva pantalla que desees agregar.
+
+- **Crear vista**:
+
+    Ve a [`views.py`](tasks/views.py) y define la vista con la que se renderizará la pantalla de creación de tareas:
+    
+    ```python
+    def create_task(request):
+        if request.method == 'POST':
+            name: str = request.POST.get('task-name', '')
+            description: str = request.POST.get('task-description', '').strip()
+            status_id: Status = Status.objects.get(name='Pendiente')
+
+            deadline_str: str = request.POST.get('task-deadline', '').strip()
+            deadline: datetime.datetime = None
+
+            if deadline_str:
+                try:
+                    deadline = datetime.datetime.strptime(deadline_str, '%Y-%m-%d')
+
+                except ValueError:
+                    pass
+
+            Task.objects.create(
+                name=name,
+                description=description,
+                deadline=deadline,
+                status_id=status_id,
+            )
+
+            messages.success(request, '¡Tarea creada exitosamente!')
+
+            return redirect('list-tasks')
+
+        return render(request, 'create_task.html')
+    ```
+
+    En la vista anterior hay varios elementos nuevos que no están importados aún, por lo que se te marcarán como errores. Para solucionarlo, modifica los `imports` para que queden así:
+
+    ```python
+    import datetime
+    from django.shortcuts import render, redirect
+    from django.contrib import messages
+    from tasks.models import Task, Status
+    ```
+
+    Esta vista hace dos cosas distintas. En primer lugar, **si la petición que le está llegando es del método GET (el que usa el navegador cuando accedes a una URL) simplemente renderiza la pantalla de creación de tareas**. Por otro lado, **si la petición que recibe es con el método POST (que será el que llegará cuando se haga click en el botón de `Crear Tarea`) se encargará de extraer los datos de la tarea y crearla dentro de la BD**.
+
+- **Crear la pantalla HTML**:
+
+    Para que la vista que creaste pueda mostrar algo, es necesario crear el template HTML. Para esto, ve a la [carpeta que contiene los templates](tasks/templates/) y crea un archivo con el nombre `create_task.html`.
+
+    Dentro de este archivo, pon el código:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block content %}
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <title>Crear Tarea</title>
+    </head>
+    <body class="bg-light">
+
+        <div class="container mt-5">
+            <h2 class="mb-4">Crear Nueva Tarea</h2>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{% url 'create-task' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="task-name" class="form-label">Nombre de la Tarea</label>
+                            <input type="text" class="form-control" id="task-name" name="task-name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="task-description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="task-description" name="task-description" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="task-deadline" class="form-label">Fecha Límite</label>
+                            <input type="date" class="form-control" id="task-deadline" name="task-deadline">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Crear Tarea</button>
+                        <a href="{% url 'list-tasks' %}" class="btn btn-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </body>
+    </html>
+
+    {% endblock content %}
+    ```
+
+- **Registrar URL**:
+
+    Ahora debes registrar la URL para poder acceder a la pantalla de creación de tareas. Para esto, ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
+
+    ```python
+    path('create-task/', views.create_task, name='create-task'),
+    ```
+
+Tu página ya puede crear nuevas tareas en la base de datos. Sin embargo, el código tiene referencias a URLs que aún no existen (las que se usarán para los servicios que aún no has creado) por lo que obtendrás un error si tratas de ejecutarlo. Puntualmente, esta funcionalidad redirecciona a una página que lista todas las tareas existentes en:
+
+```python
+return redirect('list-tasks')
+```
+
+Si deseas probarlo ahora, solo cambia esa referencia por:
+
+```python
+return redirect('home')
+```
+
+Ahora puedes volver a probar a ejecutar tus pruebas:
+
+```bash
+python manage.py test
+```
+
+Esta vez, deberían pasar exitosamente con algo así:
+
+![Test Ok](docs/images/test_ok1.png)
+
+
+> **Nota:** **NO OLVIDES** volverlo a cambiar por `return redirect('list-tasks')` cuando termines de hacer la prueba. 
+
+
+### Refactor
+
+Ya es hora de pasar a la última fase del ciclo de TDD. En esta fase, debemos procurar mejorar el código, sin cambiar su funcionamiento.
+
+En la funcionalidad anterior hay varias cosas que podemos mejorar.
+
+Ej: **Aislar lógica de parsing del deadline**:
+
+Para mejorar el código, podemos manejar la lógica de transformación del deadline en una función aparte. Para ello, crea este método:
+
+```python
+def parse_deadline(deadline_str: str) -> datetime.datetime | None:
+    """
+    Converts a string YYYY-MM-DD into a datetime object, or None if it's invalid.
+    """
+
+    if not deadline_str:
+        return None
+    try:
+        return datetime.datetime.strptime(deadline_str.strip(), "%Y-%m-%d")
+    except ValueError:
+        return None
+```
+
+Y modifica la función `create_task()` para que quede así:
+
+```python
+def create_task(request):
+    if request.method == 'POST':
+        name: str = request.POST.get('task-name', '')
+        description: str = request.POST.get('task-description', '').strip()
+        status_id: Status = Status.objects.get(name='Pendiente')
+
+        deadline_str: str = request.POST.get('task-deadline', '').strip()
+        deadline: datetime.datetime = parse_deadline(deadline_str)
+
+        Task.objects.create(
+            name=name,
+            description=description,
+            deadline=deadline,
+            status_id=status_id,
+        )
+
+        messages.success(request, '¡Tarea creada exitosamente!')
+
+        return redirect('list-tasks')
+
+    return render(request, 'create_task.html')
+```
+
+Ahora podemos **volver a probar** que las pruebas sigan funcionando correctamente (usando `return redirect('home')` para evitar tratar de llamar a un servicio que aún no existe):
+
+![Test OK](docs/images/test_ok2.png)
+
