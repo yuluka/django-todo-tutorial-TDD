@@ -1,3 +1,46 @@
-from django.shortcuts import render
+import datetime
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from tasks.models import Task, Status
+
 
 # Create your views here.
+def home(request):
+    return render(request, 'home.html')
+
+
+def parse_deadline(deadline_str: str) -> datetime.datetime | None:
+    """
+    Converts a string YYYY-MM-DD into a datetime object, or None if it's invalid.
+    """
+
+    if not deadline_str:
+        return None
+    try:
+        return datetime.datetime.strptime(deadline_str.strip(), "%Y-%m-%d")
+    except ValueError:
+        return None
+
+
+def create_task(request):
+    if request.method == 'POST':
+        name: str = request.POST.get('task-name', '')
+        description: str = request.POST.get('task-description', '').strip()
+        status_id: Status = Status.objects.get(name='Pendiente')
+
+        deadline_str: str = request.POST.get('task-deadline', '').strip()
+        deadline: datetime.datetime = parse_deadline(deadline_str)
+
+        Task.objects.create(
+            name=name,
+            description=description,
+            deadline=deadline,
+            status_id=status_id,
+        )
+
+        messages.success(request, '¡Tarea creada exitosamente!')
+
+        # return redirect('list-tasks')
+        return redirect('home')
+
+    return render(request, 'create_task.html')
