@@ -27,6 +27,10 @@ def parse_deadline(deadline_str: str) -> datetime.datetime | None:
 
 
 def create_task(request):
+    """
+    Create a new task or render the creation form.
+    """
+
     if request.method == 'POST':
         name: str = request.POST.get('task-name', '')
         description: str = request.POST.get('task-description', '').strip()
@@ -51,6 +55,14 @@ def create_task(request):
 
 
 def list_tasks(request):
-    return render(request, 'list_tasks.html', {
-        'tasks': Task.objects.all(),
-    })
+    """
+    List all tasks.
+    """
+
+    return render(
+        request, 
+        'list_tasks.html', 
+        {
+            'tasks': Task.objects.all(),
+        },
+    )
