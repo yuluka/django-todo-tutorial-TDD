@@ -40,6 +40,10 @@
       - [Red: Implementación del test para _"Ver lista de Tareas"_](#red-implementación-del-test-para-ver-lista-de-tareas)
       - [Green: Implementación de la funcionalidad para _"Ver lista de Tareas"_](#green-implementación-de-la-funcionalidad-para-ver-lista-de-tareas)
       - [Refactor: Refactorización del código de la funcionalidad para _"Ver lista de Tareas"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-ver-lista-de-tareas)
+    - [Paso 4.3: Funcionalidad para _"Editar Tarea"_](#paso-43-funcionalidad-para-editar-tarea)
+      - [Red: Implementación del test para _"Editar Tarea"_](#red-implementación-del-test-para-editar-tarea)
+      - [Green: Implementación de la funcionalidad para _"Editar Tarea"_](#green-implementación-de-la-funcionalidad-para-editar-tarea)
+      - [Refactor: Refactorización del código de la funcionalidad para _"Editar Tarea"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-editar-tarea)
 
 ---
 
@@ -1350,3 +1354,211 @@ Ahora el código se ve mucho mejor, y es más legible para cualquier persona que
 > **Nota:** Siempre es buena idea volver a ejecutar las pruebas después de esta fase, para asegurarte de que los cambios no hayan modificado el comportamiento de la funcionalidad.
 
 ---
+
+### Paso 4.3: Funcionalidad para _"Editar Tarea"_
+
+La idea de esta funcionalidad es que puedas editar las tareas que hayas creado. Por ejemplo, si quieres modificar la descripción, o cambiar el estado de una tarea específica.
+
+
+#### Red: Implementación del test para _"Editar Tarea"_
+
+Vamos a crear el test para la funcionalidad _"Èditar Tarea"_. Nuevamente, vamos a hacerlo dentro de [`tests.py`](tasks/tests.py).
+
+Crea un nuevo `TestCase` para la nueva funcionalidad así:
+
+```python
+class EditTaskViewTest(TestCase):
+    """
+    Test cases for edit_tasks view.
+    """
+
+    def setUp(self):
+        self.status = Status.objects.create(name="Pendiente")
+        
+        self.task = Task.objects.create(
+            name="Aprender TDD",
+            description="Seguir el tutorial paso a paso",
+            deadline=timezone.make_aware(datetime.datetime(2025, 9, 15)),
+            status_id=self.status,
+        )
+
+    def test_edit_task(self):
+        """
+        Test the edit_task endpoint.
+        """
+
+        response = self.client.post(
+            reverse("edit-task", args=[self.task.id]),
+            {
+                "task-name": "Aprender TDD - Modificado",
+                "task-description": "Seguir el tutorial paso a paso - Modificado",
+                "task-deadline": "2025-09-16",
+                "task-status": self.status.id,
+            },
+        )
+
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.name, "Aprender TDD - Modificado")
+        self.assertEqual(self.task.description, "Seguir el tutorial paso a paso - Modificado")
+        self.assertEqual(self.task.deadline, timezone.make_aware(datetime.datetime(2025, 9, 16)))
+```
+
+Este test se encarga de modificar una tarea (creada dentro del `setUp()`), y después verifica que la funcionalidad responda bien, y que la información de se haya actualizado por la que modificamos.
+
+
+#### Green: Implementación de la funcionalidad para _"Editar Tarea"_
+
+Vamos con la creación de la funcionalidad.
+
+- **Crear vista**:
+
+    Ve a [`views.py`](tasks/views.py) y define la vista con la que se renderizará la pantalla de edición de tareas:
+
+    ```python
+    def edit_task(request, task_id):
+        if request.method == 'POST':
+            task: Task = Task.objects.get(id=task_id)
+
+            task.name = request.POST.get('task-name', '')
+            task.description = request.POST.get('task-description', '').strip()
+            task.status_id = Status.objects.get(id=int(request.POST.get('task-status', 0)))
+
+            deadline_str: str = request.POST.get('task-deadline', '').strip()
+            deadline: datetime.datetime = None
+
+            if deadline_str:
+                try:
+                    deadline = datetime.datetime.strptime(deadline_str, '%Y-%m-%d')
+
+                except ValueError:
+                    pass
+
+            task.deadline = deadline
+            task.save()
+
+            messages.success(request, '¡Tarea actualizada exitosamente!')
+
+            return redirect('list-tasks')
+
+        return render(request, 'edit_task.html', {
+            'task': Task.objects.get(id=task_id),
+            'task_statuses': Status.objects.all(),
+        })
+    ```
+
+- **Crear la pantalla HTML**:
+
+    Ve a [`templates/`](tasks/templates/) y crea un archivo con el nombre `edit_task.html`.
+
+    Dentro de este archivo, pon el código:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block content %}
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <title>Editar Tarea</title>
+    </head>
+    <body class="bg-light">
+
+        <div class="container mt-5">
+            <h2 class="mb-4">Editar Tarea</h2>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{% url 'edit-task' task.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="task-status" class="form-label">Estado</label>
+                            <select class="form-select" id="task-status" name="task-status">
+                                {% for status in task_statuses %}
+                                    <option value="{{ status.id }}" {% if status.id == task.status_id.id %}selected{% endif %}>{{ status.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="task-name" class="form-label">Nombre de la Tarea</label>
+                            <input type="text" class="form-control" id="task-name" name="task-name" value="{{ task.name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="task-description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="task-description" name="task-description" rows="3">{{ task.description }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="task-deadline" class="form-label">Fecha Límite</label>
+                            <input type="date" class="form-control" id="task-deadline" name="task-deadline" value="{{ task.deadline|date:'Y-m-d' }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                        <a href="{% url 'list-tasks' %}" class="btn btn-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </body>
+    </html>
+
+    {% endblock content %}
+    ```
+
+- **Registrar URL**:
+
+    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:"
+
+    ```python
+    path('edit-task/<int:task_id>/', views.edit_task, name='edit-task'),
+    ```
+
+
+#### Refactor: Refactorización del código de la funcionalidad para _"Editar Tarea"_
+
+En el código de este servicio hay algunas partes que hacen algo similar a lo que hace el servicio de la creación de tareas, por lo que podemos reusar algo de la lógica que preparamos para dicho servicio.
+
+Ej: **Reutilizar la función `parse_deadline()` para el parsing del deadline**
+
+Este servicio también recibe la fecha límite de la tarea, por lo que necesita convertirla al tipo de dato correcto. Como esto ya lo hicimos dentro de la funcionalidad de _"Creación de Tareas"_, podemos usar la función que preparamos para esto. Para ello, modifica `edit_task()` para que quede así:
+
+```python
+def edit_task(request, task_id):
+    """
+    Edit an existing task or render the edit form.
+    """
+
+    if request.method == 'POST':
+        task: Task = Task.objects.get(id=task_id)
+
+        task.name = request.POST.get('task-name', '')
+        task.description = request.POST.get('task-description', '').strip()
+        task.status_id = Status.objects.get(id=int(request.POST.get('task-status', 0)))
+
+        deadline_str: str = request.POST.get('task-deadline', '').strip()
+        deadline: datetime.datetime = parse_deadline(deadline_str)
+
+        task.deadline = deadline
+        task.save()
+
+        messages.success(request, '¡Tarea actualizada exitosamente!')
+
+        return redirect('list-tasks')
+
+    return render(
+        request, 
+        'edit_task.html', 
+        {
+            'task': Task.objects.get(id=task_id),
+            'task_statuses': Status.objects.all(),
+        }
+    )
+```
+
+Ya quedó esta funcionalidad.
+
+---
+

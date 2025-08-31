@@ -46,7 +46,7 @@
                             <td>{{ task.deadline|default:"No definida" }}</td>
                             <td>{{ task.created_at|date:"F j, Y, g:i A" }}</td>
                             <td>
-                                <a href="" class="btn btn-warning btn-sm">Editar</a>
+                                <a href="{% url 'edit-task' task.id %}" class="btn btn-warning btn-sm">Editar</a>
                                 <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-task-id="{{ task.id }}">
                                     Eliminar
                                 </button>
