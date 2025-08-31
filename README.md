@@ -217,6 +217,7 @@ python --version
 ```
 
 ---
+---
 
 ## Paso 1: Creación del proyecto
 
@@ -248,7 +249,7 @@ Usa este comando para activarlo:
 ./venv/Scripts/activate
 ```
 
-> **Nota:** Reempla `venv` con el nombre que hayas escogido para tu entorno.
+> **Nota:** Reemplaza `venv` con el nombre que hayas escogido para tu entorno.
 
 ---
 
@@ -331,6 +332,7 @@ Al abrir la URL, deberías ver algo así:
 ![Proyecto recién creado](docs/images/basic_project_initialized.png)
 
 ---
+---
 
 ## Paso 2: Entendimiento de los Archivos básicos de Django
 
@@ -391,6 +393,7 @@ Estos archivos son puntos de entrada para que servidores web ejecuten el proyect
 
 [`asgi.py`](todo_app/asgi.py) (Asynchronous Server Gateway Interface): Permite manejar peticiones asíncronas, mejorando el rendimiento en aplicaciones que requieren WebSockets o tareas en tiempo real. Está pensado para servidores como Daphne y Uvicorn.
 
+---
 ---
 
 ## Paso 3: Creación de la Lógica básica del proyecto
@@ -783,5 +786,12 @@ Al iniciar sesión, verás los modelos que Django incluye por defecto, y los que
 Explora este panel de administración y crea los estados en los que quieras que sea posible poner tus tareas.
 
 ---
+---
 
 ## Paso 4: Implementación de funcionalidades
+
+Ya cuentas con lo básico que necesitarás para el desarrollo del proyecto. Por ende, es momento de iniciar con el desarrollo de las funcionalidades que tendrá esta aplicación:
+
+---
+
+###
