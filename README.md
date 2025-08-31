@@ -44,6 +44,10 @@
       - [Red: Implementación del test para _"Editar Tarea"_](#red-implementación-del-test-para-editar-tarea)
       - [Green: Implementación de la funcionalidad para _"Editar Tarea"_](#green-implementación-de-la-funcionalidad-para-editar-tarea)
       - [Refactor: Refactorización del código de la funcionalidad para _"Editar Tarea"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-editar-tarea)
+    - [Paso 4.4: Funcionalidad para _"Eliminar Tarea"_](#paso-44-funcionalidad-para-eliminar-tarea)
+      - [Red: Implementación del test para _"Eliminar Tarea"_](#red-implementación-del-test-para-eliminar-tarea)
+      - [Green: Implementación de la funcionalidad para _"Eliminar Tarea"_](#green-implementación-de-la-funcionalidad-para-eliminar-tarea)
+      - [Refactor: Refactorización del código de la funcionalidad para _"Eliminar Tarea"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-eliminar-tarea)
 
 ---
 
@@ -1362,7 +1366,7 @@ La idea de esta funcionalidad es que puedas editar las tareas que hayas creado. 
 
 #### Red: Implementación del test para _"Editar Tarea"_
 
-Vamos a crear el test para la funcionalidad _"Èditar Tarea"_. Nuevamente, vamos a hacerlo dentro de [`tests.py`](tasks/tests.py).
+Vamos a crear el test para la funcionalidad _"Editar Tarea"_. Nuevamente, vamos a hacerlo dentro de [`tests.py`](tasks/tests.py).
 
 Crea un nuevo `TestCase` para la nueva funcionalidad así:
 
@@ -1510,7 +1514,7 @@ Vamos con la creación de la funcionalidad.
 
 - **Registrar URL**:
 
-    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:"
+    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
 
     ```python
     path('edit-task/<int:task_id>/', views.edit_task, name='edit-task'),
@@ -1562,3 +1566,96 @@ Ya quedó esta funcionalidad.
 
 ---
 
+### Paso 4.4: Funcionalidad para _"Eliminar Tarea"_
+
+La idea de esta funcionalidad es que puedas eliminar las tareas que ya no quieras tener dentro de la aplicación.
+
+
+#### Red: Implementación del test para _"Eliminar Tarea"_
+
+Vamos a crear el test para la funcionalidad _"Eliminar Tarea"_. Nuevamente, vamos a hacerlo dentro de [`tests.py`](tasks/tests.py).
+
+Crea un nuevo `TestCase` para la nueva funcionalidad así:
+
+```python
+class DeleteTaskViewTest(TestCase):
+    """
+    Test cases for delete_task view.
+    """
+
+    def setUp(self):
+        self.status = Status.objects.create(name="Pendiente")
+        
+        self.task = Task.objects.create(
+            name="Aprender TDD",
+            description="Seguir el tutorial paso a paso",
+            deadline=timezone.make_aware(datetime.datetime(2025, 9, 15)),
+            status_id=self.status,
+        )
+
+    def test_delete_task(self):
+        """
+        Test the delete_task endpoint.
+        """
+
+        response = self.client.post(
+            reverse("delete-task", args=[self.task.id])
+        )
+
+        # Verificamos que la tarea haya sido eliminada
+        self.assertFalse(Task.objects.filter(id=self.task.id).exists())
+```
+
+Este test se encarga de eliminar una tarea (creada dentro del `setUp()`), y después verifica que esta ya no exista dentro de la base de datos.
+
+
+#### Green: Implementación de la funcionalidad para _"Eliminar Tarea"_
+
+Vamos con la creación de la funcionalidad.
+
+- Crear vista:
+
+    Ve a [`views.py`](tasks/views.py) y define la vista que se encargará de la acción de eliminar tareas:
+
+    ```python
+    def delete_task(request, task_id):
+        Task.objects.get(id=task_id).delete()
+
+        messages.success(request, '¡Tarea eliminada exitosamente!')
+
+        return redirect('list-tasks')
+    ```
+
+- Registrar URL:
+
+    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
+
+    ```python
+    path('delete-task/<int:task_id>/', views.delete_task, name='delete-task'),
+    ```
+
+Para esta funcionalida no es necesario crear un template nuevo, pues la parte gráfica que se encarga de la confirmación de la eliminación se encuentra dentro de [`list_tasks.html`](tasks/templates/list_tasks.html), en el modal que se ejecuta al presionar el botón `Eliminar` de una tarea.
+
+
+#### Refactor: Refactorización del código de la funcionalidad para _"Eliminar Tarea"_
+
+Nuevamente tenemos una funcionalidad con un código muy sencillo, por lo que la oportunidad de mejora no es tan grande. Podemos, igual que con la funcionalidad de [_"Ver lista de Tareas"_](#paso-42-funcionalidad-para-ver-lista-de-tareas), mejorar cosas de estilo del código.
+
+Ej: **Mejorar estilo de la función `delete_task()`**:
+
+Para mejorar la legibilidad del código, podemos hacer que tenga un mejor estilo. Para ello, modifica `delete_task()` para que quede así:
+
+```python
+def delete_task(request, task_id):
+    """
+    Delete an existing task.
+    """
+
+    Task.objects.get(id=task_id).delete()
+
+    messages.success(request, '¡Tarea eliminada exitosamente!')
+
+    return redirect('list-tasks')
+```
+
+Ya terminaste con esta funcionalidad.
