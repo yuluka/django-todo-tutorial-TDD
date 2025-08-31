@@ -12,6 +12,12 @@
 - [Pasos](#pasos)
   - [Paso 0: Instalación de Python](#paso-0-instalación-de-python)
   - [Paso 1: Creación del proyecto](#paso-1-creación-del-proyecto)
+    - [Paso 1.1: Crear entorno virtual de Python](#paso-11-crear-entorno-virtual-de-python)
+    - [Paso 1.2: Activar el entorno virtual](#paso-12-activar-el-entorno-virtual)
+    - [Paso 1.3: Seleccionar Python Interpreter](#paso-13-seleccionar-python-interpreter)
+    - [Paso 1.4: Instalar dependencias necesarias](#paso-14-instalar-dependencias-necesarias)
+    - [Paso 1.5: Crear archivo `requirements.txt`](#paso-15-crear-archivo-requirementstxt)
+    - [Paso 1.6: Crear proyecto Django](#paso-16-crear-proyecto-django)
   - [Paso 2: Entendimiento de los Archivos básicos de Django](#paso-2-entendimiento-de-los-archivos-básicos-de-django)
   - [Paso 3: Creación de la Lógica del proyecto](#paso-3-creación-de-la-lógica-del-proyecto)
 
@@ -147,60 +153,58 @@ En resumen, **TDD no solo es escribir pruebas por escribir**, sino una manera de
 
 Antes de que te pongas manos a la obra con el proyecto, debes tener instalado el lenguaje de programación sobre el que funciona Django: Python. 
 
-0. Instalación de Python
-   
-   Esto es imprescindible para poder crear y ejecutar el proyecto.
+Esto es imprescindible para poder crear y ejecutar el proyecto.
 
-   Antes que nada, debes verificar si ya tienes instalado el lenguaje. Para ello, abre una terminal y ejecuta el siguiente comando:
+Antes que nada, debes verificar si ya tienes instalado el lenguaje. Para ello, abre una terminal y ejecuta el siguiente comando:
 
-   ```bash
-   python --version
-   ```
+```bash
+python --version
+```
 
-    Si ya lo tienes instalado, obtendrás un resultado como este:
+Si ya lo tienes instalado, obtendrás un resultado como este:
 
-    ```bash
-    Python 3.x.x
-    ```
+```bash
+Python 3.x.x
+```
 
-    > **Nota**: Si Python ya está instalado en tu dispositivo, puedes saltarte todo este paso de instalación e ir al [siguiente](#creación-del-proyecto).
+> **Nota**: Si Python ya está instalado en tu dispositivo, puedes saltarte todo este paso de instalación e ir al [siguiente](#creación-del-proyecto).
 
-    Si no obtienes algo así, significa que debes instalar Python. Para hacerlo:
-    
-    - Dirígete a la sección de instalación del lenguaje (en su [página oficial](https://www.python.org)) correspondiente al Sistema Operativo que estés usando:
+Si no obtienes algo así, significa que debes instalar Python. Para hacerlo:
 
-        - [Windows](https://www.python.org/downloads/windows)
-        - [Linux/Unix](https://www.python.org/downloads/source)
-        - [macOS](https://www.python.org/downloads/macos)
-    
-    - Descarga el instalador de la versión que prefieras.
+- Dirígete a la sección de instalación del lenguaje (en su [página oficial](https://www.python.org)) correspondiente al Sistema Operativo que estés usando:
 
-        Por lo general, es recomendable usar la versión estable más actual, pero eso dependerá de tus necesidades personales y profesionales. 
+    - [Windows](https://www.python.org/downloads/windows)
+    - [Linux/Unix](https://www.python.org/downloads/source)
+    - [macOS](https://www.python.org/downloads/macos)
 
-        > **Nota**: Siempre puedes tener varias versiones de Python en el mismo dispositivo y usar la que más te convenga en cada momento.
+- Descarga el instalador de la versión que prefieras.
 
-    - Ejecuta el instalador descargado.
+    Por lo general, es recomendable usar la versión estable más actual, pero eso dependerá de tus necesidades personales y profesionales. 
 
-        El instalador, como su nombre lo dice, instalará el lenguaje en tu dispositivo. Al ejecutarlo, se iniciará el proceso con esta ventana:
+    > **Nota**: Siempre puedes tener varias versiones de Python en el mismo dispositivo y usar la que más te convenga en cada momento.
 
-        ![Instalador Python](docs/images/python_installer1.png)
+- Ejecuta el instalador descargado.
 
-        > **Nota**: La casilla **"Add python.exe to PATH"** debes marcarla SOLO si no tenías Python instalado antes. En caso de que estés instalado una versión distinta a la que tienes actualmente, asegúrate de dejarla sin marcar. En caso de que no lo tuvieras instalado antes, es muy importante que la marques.
+    El instalador, como su nombre lo dice, instalará el lenguaje en tu dispositivo. Al ejecutarlo, se iniciará el proceso con esta ventana:
 
-        Después de eso, presiona donde dice **"Install Now"**. Eso te mostrará algo así:
+    ![Instalador Python](docs/images/python_installer1.png)
 
-        ![Instalador Python](docs/images/python_installer2.png)
+    > **Nota**: La casilla **"Add python.exe to PATH"** debes marcarla SOLO si no tenías Python instalado antes. En caso de que estés instalado una versión distinta a la que tienes actualmente, asegúrate de dejarla sin marcar. En caso de que no lo tuvieras instalado antes, es muy importante que la marques.
 
-        Al terminar, verás:
+    Después de eso, presiona donde dice **"Install Now"**. Eso te mostrará algo así:
 
-        ![Instalador Python](docs/images/python_installer3.png)
+    ![Instalador Python](docs/images/python_installer2.png)
 
-    
-    Con esto ya tendrías Python instalado. Puedes verificarlo abriendo una nueva terminal y ejecutando:
+    Al terminar, verás:
 
-    ```bash
-   python --version
-   ```
+    ![Instalador Python](docs/images/python_installer3.png)
+
+
+Con esto ya tendrías Python instalado. Puedes verificarlo abriendo una nueva terminal y ejecutando:
+
+```bash
+python --version
+```
 
 ---
 
@@ -208,101 +212,107 @@ Antes de que te pongas manos a la obra con el proyecto, debes tener instalado el
 
 Para inicializar el proyecto deberás seguir estos pasos:
 
-1. Crear entorno virtual de Python
 
-    Crear un entorno virtual en Python te permite trabajar en un ambiente aislado, gestionando de manera independiente las dependencias de cada proyecto. Esto evita conflictos entre versiones de librerías y garantiza un entorno más ordenado y controlado.
+#### Paso 1.1: Crear entorno virtual de Python
 
-    Usa este comando para crearlo:
+Crear un entorno virtual en Python te permite trabajar en un ambiente aislado, gestionando de manera independiente las dependencias de cada proyecto. Esto evita conflictos entre versiones de librerías y garantiza un entorno más ordenado y controlado.
 
-    ```bash
-    python -m venv venv
-    ```
+Usa este comando para crearlo:
 
-    > **Nota:** El entorno puede tener el nombre que desees. En este caso, uso `venv` por convención. Además, es necesario que crees el entorno en la carpeta raíz del proyecto.
+```bash
+python -m venv venv
+```
 
-2. Activar el entorno virtual
+> **Nota:** El entorno puede tener el nombre que desees. En este caso, uso `venv` por convención. Además, es necesario que crees el entorno en la carpeta raíz del proyecto.
 
-    Una vez creado el entorno virtual, es preciso activarlo dentro de la consola que usarás para manejar y ejecutar tu proyecto. 
 
-    Usa este comando para activarlo:
+#### Paso 1.2: Activar el entorno virtual
 
-    ```bash
-    ./venv/Scripts/activate
-    ```
+Una vez creado el entorno virtual, es preciso activarlo dentro de la consola que usarás para manejar y ejecutar tu proyecto. 
 
-    > **Nota:** Reempla `venv` con el nombre que hayas escogido para tu entorno.
+Usa este comando para activarlo:
 
-3. Seleccionar Python Interpreter
+```bash
+./venv/Scripts/activate
+```
 
-    Una vez creado, y activado, el entorno virtual, es importante asegurarse de que tu editor o IDE utilice el intérprete correcto. Esto garantiza que las dependencias instaladas en el entorno virtual sean reconocidas y usadas en tu proyecto.
+> **Nota:** Reempla `venv` con el nombre que hayas escogido para tu entorno.
 
-    En Visual Studio Code (VS Code) debes hacer lo siguiente:
 
-    - Abrir el **Command Palette** presionando `Ctrl + Shift + P`.
-    - Escribir "Python: Select Interpreter" y presionar `Enter`.
-    - Buscar el intérprete correspondiente al entorno creado. Suele estar marcado con la palabra `Recommended`.
-    - Seleccionar el intérprete.
+#### Paso 1.3: Seleccionar Python Interpreter
 
-4. Instalar dependencias necesarias
+Una vez creado, y activado, el entorno virtual, es importante asegurarse de que tu editor o IDE utilice el intérprete correcto. Esto garantiza que las dependencias instaladas en el entorno virtual sean reconocidas y usadas en tu proyecto.
 
-    Ahora que tu entorno está preparado, deberás instalar las dependencias necesarias para usar Django.
+En Visual Studio Code (VS Code) debes hacer lo siguiente:
 
-    Ve a la consola, en VSCode puedes hacer presionando `Ctrl + J`, y ejecuta:
+- Abrir el **Command Palette** presionando `Ctrl + Shift + P`.
+- Escribir "Python: Select Interpreter" y presionar `Enter`.
+- Buscar el intérprete correspondiente al entorno creado. Suele estar marcado con la palabra `Recommended`.
+- Seleccionar el intérprete.
 
-    ```bash
-    pip install django
-    ```
 
-    > **Nota:** Asegúrate de ejecutar este comando en la consola donde el entorno virtual esté activado. En VS Code, puedes verificarlo al inicio de cada línea de la terminal, donde debería aparecer el nombre del entorno entre paréntesis, por ejemplo: `(venv) PS E:\WORKSPACE (PC)\django-todo-tutorial>`.
+#### Paso 1.4: Instalar dependencias necesarias
 
-    Ahora puedes verificar la versión instalada de Django usando el comando:
+Ahora que tu entorno está preparado, deberás instalar las dependencias necesarias para usar Django.
 
-    ```bash
-    django-admin --version
-    ```
+Ve a la consola, en VSCode puedes hacer presionando `Ctrl + J`, y ejecuta:
 
-5. Crear archivo `requirements.txt`
+```bash
+pip install django
+```
 
-    El archivo [`requirements.txt`](requirements.txt) es una lista de todas las dependencias de tu proyecto. Guardar esta lista permite que otras personas (o tú mismo en otro momento) puedan instalar fácilmente las mismas versiones de las librerías necesarias. Es importante destacar que el entorno virtual, donde se instalan estas dependencias, **no debería** subirse al repositorio o sistema de control de versiones, por lo que este archivo es clave para reproducir el entorno de trabajo correctamente.
+> **Nota:** Asegúrate de ejecutar este comando en la consola donde el entorno virtual esté activado. En VS Code, puedes verificarlo al inicio de cada línea de la terminal, donde debería aparecer el nombre del entorno entre paréntesis, por ejemplo: `(venv) PS E:\WORKSPACE (PC)\django-todo-tutorial>`.
 
-    Para generarlo:
+Ahora puedes verificar la versión instalada de Django usando el comando:
 
-    ```bash
-    pip freeze > requirements.txt
-    ```
+```bash
+django-admin --version
+```
 
-    > **Nota:** Este comando creará un archivo con el nombre `requirements.txt`, en caso de que no exista, con los nombres de las librerías que tengas instaladas en tu entorno virtual. En caso de que el archivo ya exista, agregará las nuevas librerías que no estén listadas en dicho archivo. 
 
-    > **Importante:** Ejecutar este comando cada vez que hagas la instalación de nuevas librerías para mantener el archivo de requerimentos actualizado.
+#### Paso 1.5: Crear archivo `requirements.txt`
 
-    Para instalar las dependencias desde el archivo (en otra máquina, por ejemplo):
+El archivo [`requirements.txt`](requirements.txt) es una lista de todas las dependencias de tu proyecto. Guardar esta lista permite que otras personas (o tú mismo en otro momento) puedan instalar fácilmente las mismas versiones de las librerías necesarias. Es importante destacar que el entorno virtual, donde se instalan estas dependencias, **no debería** subirse al repositorio o sistema de control de versiones, por lo que este archivo es clave para reproducir el entorno de trabajo correctamente.
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+Para generarlo:
 
-6. Crear proyecto Django
+```bash
+pip freeze > requirements.txt
+```
 
-    Hasta este punto, todo lo que has hecho es preparar tu entorno de desarrollo. Sin embargo, es necesario que crees tu proyecto de Django, donde estará todo el código de tu aplicación.
+> **Nota:** Este comando creará un archivo con el nombre `requirements.txt`, en caso de que no exista, con los nombres de las librerías que tengas instaladas en tu entorno virtual. En caso de que el archivo ya exista, agregará las nuevas librerías que no estén listadas en dicho archivo. 
 
-    Para crearlo, ejecuta:
+> **Importante:** Ejecutar este comando cada vez que hagas la instalación de nuevas librerías para mantener el archivo de requerimentos actualizado.
 
-    ```bash
-    django-admin startproject todo_app .
-    ```
+Para instalar las dependencias desde el archivo (en otra máquina, por ejemplo):
 
-    > **Nota:** En este caso, el nombre del proyecto es `todo_app`. Sin embargo, puedes nombrarlo como desees, dependiendo de su propósito y funcionalidad.
+```bash
+pip install -r requirements.txt
+```
 
-    Ahora, puedes ejecutar tu proyecto para verificar que todo esté bien:
 
-    ```bash
-    python manage.py runserver
-    ```
+#### Paso 1.6: Crear proyecto Django
 
-    > **Nota:** Al ejecutar este comando, verás información relevante sobre tu proyecto, incluyendo la URL local para acceder a él (generalmente `http://127.0.0.1:8000/`). Es normal que, al correr el proyecto por primera vez, la consola muestre texto en rojo indicando que hay migraciones pendientes. No te preocupes, esto solo significa que debes aplicarlas antes de continuar (lo verás más adelante en el tutorial).
+Hasta este punto, todo lo que has hecho es preparar tu entorno de desarrollo. Sin embargo, es necesario que crees tu proyecto de Django, donde estará todo el código de tu aplicación.
 
-    Al abrir la URL, deberías ver algo así:
-    ![Proyecto recién creado](docs/images/basic_project_initialized.png)
+Para crearlo, ejecuta:
+
+```bash
+django-admin startproject todo_app .
+```
+
+> **Nota:** En este caso, el nombre del proyecto es `todo_app`. Sin embargo, puedes nombrarlo como desees, dependiendo de su propósito y funcionalidad.
+
+Ahora, puedes ejecutar tu proyecto para verificar que todo esté bien:
+
+```bash
+python manage.py runserver
+```
+
+> **Nota:** Al ejecutar este comando, verás información relevante sobre tu proyecto, incluyendo la URL local para acceder a él (generalmente `http://127.0.0.1:8000/`). Es normal que, al correr el proyecto por primera vez, la consola muestre texto en rojo indicando que hay migraciones pendientes. No te preocupes, esto solo significa que debes aplicarlas antes de continuar (lo verás más adelante en el tutorial).
+
+Al abrir la URL, deberías ver algo así:
+![Proyecto recién creado](docs/images/basic_project_initialized.png)
 
 ---
 
@@ -310,54 +320,112 @@ Para inicializar el proyecto deberás seguir estos pasos:
 
 Al crear un proyecto en Django, se genera una estructura de archivos que permite su correcto funcionamiento. A continuación, te explico el propósito de cada uno:
 
-1. [`manage.py`](manage.py)
 
-    Este archivo es el punto de entrada para interactuar con el proyecto desde la línea de comandos. Permite ejecutar comandos clave como iniciar el servidor, aplicar migraciones y crear aplicaciones.
+#### Paso 2.1: [`manage.py`](manage.py)
 
-    De hecho, ya lo usaste, en el último paso de la sección anterior, para ejecutar el proyecto.
+Este archivo es el punto de entrada para interactuar con el proyecto desde la línea de comandos. Permite ejecutar comandos clave como iniciar el servidor, aplicar migraciones y crear aplicaciones.
 
-2. [`settings.py`](todo_app/settings.py)
+De hecho, ya lo usaste, en el último paso de la sección anterior, para ejecutar el proyecto.
 
-    Este archivo contiene la configuración principal del proyecto Django. Aquí se definen aspectos clave como la base de datos, las aplicaciones instaladas, la configuración de seguridad y los archivos estáticos.
 
-    Algunas de las principales configuraciones que se pueden establecer en este archivo son:
+#### Paso 2.2: [`settings.py`](todo_app/settings.py)
 
-    - `INSTALLED_APPS`: Lista de aplicaciones activas en el proyecto (lo verás más adelante).
-    - `DATABASES`: Configuración de la base de datos del proyecto. Por defecto, Django crea y configura una de SQLite, llamada `db.sqlite3`, pero puedes cambiarlo para que use la que prefieras (incluso NoSQL).
-    - `MIDDLEWARE`: Conjunto de procesos que se ejecutan en cada petición antes de llegar a la vista.
-    - `TEMPLATES`: Configuración para los archivos HTML del proyecto.
-    - `STATIC_URL`: Ruta para archivos estáticos como CSS, JavaScript e imágenes.
+Este archivo contiene la configuración principal del proyecto Django. Aquí se definen aspectos clave como la base de datos, las aplicaciones instaladas, la configuración de seguridad y los archivos estáticos.
 
-    Al cambiar este archivo, cambias la configuración del proyecto. Por ejemplo, puedes configurar una BD distinta:
+Algunas de las principales configuraciones que se pueden establecer en este archivo son:
 
-    ```python
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'mi_base_de_datos',
-            'USER': 'mi_usuario',
-            'PASSWORD': 'mi_contraseña',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
+- `INSTALLED_APPS`: Lista de aplicaciones activas en el proyecto (lo verás más adelante).
+- `DATABASES`: Configuración de la base de datos del proyecto. Por defecto, Django crea y configura una de SQLite, llamada `db.sqlite3`, pero puedes cambiarlo para que use la que prefieras (incluso NoSQL).
+- `MIDDLEWARE`: Conjunto de procesos que se ejecutan en cada petición antes de llegar a la vista.
+- `TEMPLATES`: Configuración para los archivos HTML del proyecto.
+- `STATIC_URL`: Ruta para archivos estáticos como CSS, JavaScript e imágenes.
+
+Al cambiar este archivo, cambias la configuración del proyecto. Por ejemplo, puedes configurar una BD distinta:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mi_base_de_datos',
+        'USER': 'mi_usuario',
+        'PASSWORD': 'mi_contraseña',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
-    ```
+}
+```
 
-3. [`urls.py`](todo_app/urls.py)
 
-    En este archivo se definen las rutas del proyecto. Básicamente, se define la vista que se debe ejecutar cuando se acceda a cada URL dentro de la aplicación.
+#### Paso 2.3: [`urls.py`](todo_app/urls.py)
 
-    Incialmente, este archivo contiene la ruta al panel de administración: `/admin/`. Las nuevas rutas se deben agregar a la lista `urlpatterns`.
+En este archivo se definen las rutas del proyecto. Básicamente, se define la vista que se debe ejecutar cuando se acceda a cada URL dentro de la aplicación.
 
-4. `wsgi.py` y `asgi.py`
+Incialmente, este archivo contiene la ruta al panel de administración: `/admin/`. Las nuevas rutas se deben agregar a la lista `urlpatterns`.
 
-    Estos archivos son puntos de entrada para que servidores web ejecuten el proyecto Django.
 
-    [`wsgi.py`](todo_app/wsgi.py) (Web Server Gateway Interface): Es el archivo que Django usa por defecto para desplegar el proyecto en servidores tradicionales, como Apache o Gunicorn. Se usa en despliegues con WSGI-compatible, ideal para la mayoría de aplicaciones estándar.
+#### Paso 2.4: `wsgi.py` y `asgi.py`
 
-    [`asgi.py`](todo_app/asgi.py) (Asynchronous Server Gateway Interface): Permite manejar peticiones asíncronas, mejorando el rendimiento en aplicaciones que requieren WebSockets o tareas en tiempo real. Está pensado para servidores como Daphne y Uvicorn.
+Estos archivos son puntos de entrada para que servidores web ejecuten el proyecto Django.
+
+[`wsgi.py`](todo_app/wsgi.py) (Web Server Gateway Interface): Es el archivo que Django usa por defecto para desplegar el proyecto en servidores tradicionales, como Apache o Gunicorn. Se usa en despliegues con WSGI-compatible, ideal para la mayoría de aplicaciones estándar.
+
+[`asgi.py`](todo_app/asgi.py) (Asynchronous Server Gateway Interface): Permite manejar peticiones asíncronas, mejorando el rendimiento en aplicaciones que requieren WebSockets o tareas en tiempo real. Está pensado para servidores como Daphne y Uvicorn.
 
 ---
 
 ### Paso 3: Creación de la Lógica del proyecto
+
+1. Crear aplicación
+
+En Django, los proyectos se estructuran en módulos llamados aplicaciones. Cada aplicación gestiona una parte específica de la lógica del proyecto y, en muchos casos, puede reutilizarse en otros proyectos si es necesario.
+
+Django, por defecto, incluye varias aplicaciones que manejan funcionalidades básicas del proyecto. Puedes ver la lista de aplicaciones activas en el archivo [`settings.py`](todo_app/settings.py), dentro de la variable `INSTALLED_APPS`.
+
+Para crear una aplicación, debes ejecutar:
+
+```bash
+python manage.py startapp tasks
+```
+
+> **Nota:** Este comando creará una [carpeta](tasks/) con el nombre de la app (`tasks` en este caso). Puedes darle el nombre que desees a cada app.
+
+Cada aplicación del proyecto tiene una estructura de archivos propia, que le permiten manejar la lógica de forma modular:
+
+- [`admin.py`](tasks/admin.py): Sirve para registrar modelos en el panel de administración de Django, permitiendo gestionarlos desde esta interfaz.
+- [`apps.py`](tasks/apps.py): Contiene la configuración de la aplicación. Django lo usa para registrar la aplicación dentro del proyecto.
+- [`migrations/`](tasks/migrations/): Es donde se guardan los archivos de migraciones que Django usa para gestionar la base de datos. Cada vez que modificas un modelo y ejecutas el comando `makemigrations`, Django genera un nuevo archivo dentro de esta carpeta.
+- [`models.py`](tasks/models.py): Define las estructuras de datos de la aplicación mediante modelos de Django. Los modelos representan las tablas de la base de datos.
+- [`tests.py`](tasks/tests.py): Contiene pruebas automatizadas para verificar el correcto funcionamiento de la aplicación.
+- [`views.py`](tasks/views.py): Contiene la lógica de negocio de la aplicación. Es donde se definen las vistas, que son funciones o clases que procesan solicitudes y devuelven respuestas.
+- [`urls.py`](tasks/urls.py): No se crea por defecto, pero es recomendable crearlo y usarlo para cada aplicación. Tiene la misma función que el `urls.py` general.
+
+2. Agregar aplicación al proyecto
+
+Una vez que has creado una aplicación, es necesario registrarla en la configuración del proyecto para que Django la reconozca y pueda utilizarla.
+
+Para agregarla, debes:
+
+- Ir al archivo de configuración [`settings.py`](todo_app/settings.py).
+- Buscar la lista llamada `INSTALLED_APPS`.
+- Agregar un elemento con el nombre de la app que quieres registrar. En este caso sería `'tasks'`.
+
+3. Incluir URLs de la aplicación en el proyecto
+
+Cuando cada aplicación maneja sus propias rutas en su propio archivo `urls.py`, es necesario incluirlas en el archivo de URLs principal del proyecto para que Django las reconozca.
+
+Para hacer esto, debes:
+
+- Ir al [archivo de URLs principal](todo_app/urls.py).
+
+- Importar la función `include`:
+
+    ```python
+    from django.urls import path, include
+    ```
+
+- Agregar un elemento a la lista `urlpatterns`, usando la función `include()`, de la siguiente manera:
+
+    ```python
+    path('', include(tasks.urls)),
+    ```
 
