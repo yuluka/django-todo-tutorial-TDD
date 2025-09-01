@@ -53,6 +53,10 @@
       - [Red: Implementación del test para _"Envío de Correo"_](#red-implementación-del-test-para-envío-de-correo)
       - [Green: Implementación de la funcionalidad para _"Envío de Correo"_](#green-implementación-de-la-funcionalidad-para-envío-de-correo)
       - [Refactor: Refactorización del código de la funcionalidad para _"Envío de Correo"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-envío-de-correo)
+    - [Paso 5.2: Funcionalidad para _"Autenticación"_](#paso-52-funcionalidad-para-autenticación)
+      - [Red: Implementación del test para _"Autenticación"_](#red-implementación-del-test-para-autenticación)
+      - [Green: Implementación de la funcionalidad para _"Autenticación"_](#green-implementación-de-la-funcionalidad-para-autenticación)
+      - [Refactor: Refactorización del código de la funcionalidad para _"Autenticación"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-autenticación)
 
 ---
 
