@@ -3,6 +3,7 @@ from .models import Task, Status
 import datetime
 from django.urls import reverse
 from django.utils import timezone
+from django.core import mail
 
 # Create your tests here.
 
@@ -132,3 +133,26 @@ class DeleteTaskViewTest(TestCase):
 
         # Verificamos que la tarea haya sido eliminada
         self.assertFalse(Task.objects.filter(id=self.task.id).exists())
+
+
+class SendEmailViewTest(TestCase):
+    """
+    Test cases for send_email view.
+    """
+
+    def test_send_email(self):
+        """
+        Test the send_email endpoint.
+        """
+
+        response = self.client.post(reverse("send-email"), {
+            "subject": "Prueba TDD",
+            "message": "Este es un mensaje de prueba",
+            "recipient": "un_correo@gmail.com",
+        })
+
+        # Verificamos que se envió un correo
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Prueba TDD")
+        self.assertEqual(mail.outbox[0].body, "Este es un mensaje de prueba")
+        self.assertIn("un_correo@gmail.com", mail.outbox[0].to)
