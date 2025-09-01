@@ -48,6 +48,11 @@
       - [Red: Implementación del test para _"Eliminar Tarea"_](#red-implementación-del-test-para-eliminar-tarea)
       - [Green: Implementación de la funcionalidad para _"Eliminar Tarea"_](#green-implementación-de-la-funcionalidad-para-eliminar-tarea)
       - [Refactor: Refactorización del código de la funcionalidad para _"Eliminar Tarea"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-eliminar-tarea)
+  - [Paso 5: Implementación de funcionalidades avanzadas](#paso-5-implementación-de-funcionalidades-avanzadas)
+    - [Paso 5.1: Funcionalidad para _"Envío de Correo"_](#paso-51-funcionalidad-para-envío-de-correo)
+      - [Red: Implementación del test para _"Envío de Correo"_](#red-implementación-del-test-para-envío-de-correo)
+      - [Green: Implementación de la funcionalidad para _"Envío de Correo"_](#green-implementación-de-la-funcionalidad-para-envío-de-correo)
+      - [Refactor: Refactorización del código de la funcionalidad para _"Envío de Correo"_](#refactor-refactorización-del-código-de-la-funcionalidad-para-envío-de-correo)
 
 ---
 
@@ -1299,7 +1304,7 @@ Ahora tienes que crear la funcionalidad para que tus tests pasen exitosamente. P
     {% endblock content %}
     ```
 
-- Registrar URL:
+- **Registrar URL**:
 
     Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
 
@@ -1613,7 +1618,7 @@ Este test se encarga de eliminar una tarea (creada dentro del `setUp()`), y desp
 
 Vamos con la creación de la funcionalidad.
 
-- Crear vista:
+- **Crear vista**:
 
     Ve a [`views.py`](tasks/views.py) y define la vista que se encargará de la acción de eliminar tareas:
 
@@ -1626,7 +1631,7 @@ Vamos con la creación de la funcionalidad.
         return redirect('list-tasks')
     ```
 
-- Registrar URL:
+- **Registrar URL**:
 
     Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
 
@@ -1659,3 +1664,298 @@ def delete_task(request, task_id):
 ```
 
 Ya terminaste con esta funcionalidad.
+
+---
+---
+
+## Paso 5: Implementación de funcionalidades avanzadas
+
+Ya has implementado las funcionalidades más básicas de la aplicación. Por ende, es momento de implementar funcionalidades algo más avanzadas, que llevarán tu aplicación a un nivel más alto.
+
+---
+
+### Paso 5.1: Funcionalidad para _"Envío de Correo"_
+
+La idea de esta funcionalidad es que puedas enviar correos a cualquier destinatario desde la misma aplicación.
+
+
+#### Red: Implementación del test para _"Envío de Correo"_
+
+Para probar esta funcionalidad, vamos a aprovechar una utilidad que tiene el propio Django, y que sirve para revisar los correos que se han enviado. Para esto, antes de iniciar con los tests, debes importar lo siguiente en [`tests.py`](tasks/tests.py):
+
+```python
+from django.core import mail
+```
+
+Ahora que ya tienes las utilidades necesarias a tu disposición, vamos con los tests:
+
+```python
+class SendEmailViewTest(TestCase):
+    """
+    Test cases for send_email view.
+    """
+
+    def test_send_email(self):
+        """
+        Test the send_email endpoint.
+        """
+
+        response = self.client.post(reverse("send-email"), {
+            "subject": "Prueba TDD",
+            "message": "Este es un mensaje de prueba",
+            "recipient": "destinatario@example.com",
+        })
+
+        # Verificamos que se envió un correo
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Prueba TDD")
+        self.assertEqual(mail.outbox[0].body, "Este es un mensaje de prueba")
+        self.assertIn("destinatario@example.com", mail.outbox[0].to)
+```
+
+Este test usa la funcionalidad para enviar un correo, y luego revisa que sí se haya enviado de forma exitosa.
+
+
+#### Green: Implementación de la funcionalidad para _"Envío de Correo"_
+
+Para la implementación de este servicio tendrás que hacer algunos pasos extra que son necesarios para habilitar el envío de correos:
+
+- **Habilitar envío de correos mediante terceros en Gmail**:
+
+    Para este ejercicio debes tener una cuenta de email de Google, ya que es una de las más fáciles de configurar para este propósito. Cuando menciono lo de configurar es porque, por defecto, no puedes usar un correo de Google para enviar coreos mediante aplicaciones no verificadas como las que tú mismo puedes programar. Es por esto que hace falta configurar tu correo para indicarle a Google que quieres hacerlo:
+
+    1. Ve a la administración de tu cuenta de Google.
+    2. Ve a seguridad y activación en dos pasos.
+    3. Ve a contraseñas de aplicación.
+    4. Crea tu SMTP y guarda la clave generada.
+
+    Si lo deseas, puedes apoyarte en [este video](https://www.youtube.com/watch?v=QJobMzcmoMo), desde el minuto 0:33 hasta el minuto 3:14.
+
+- **Habilitar envío de correos en configuración del proyecto**:
+
+    Este paso consiste en modificar la configuración de tu proyecto, para que te permita enviar correos sin problemas. 
+    
+    Primero, ve a [`settings.py`](todo_app/settings.py) y agrega:
+
+    ```python
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'tu_correo@gmail.com'
+    EMAIL_HOST_PASSWORD = 'tu contraseña generada'
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    ```
+
+- **Crear vista**:
+
+    Ve a [`views.py`](tasks/views.py) y agrega el import de la utilidad de Django que usaremos para el envío de correos:
+
+    ```python
+    from django.core.mail import send_mail
+    ```
+    
+    Define la vista que se encargará de la acción de enviar correos:
+
+    ```python
+    def send_email_view(request):
+        if request.method == 'POST':
+            subject = request.POST.get('subject', '')
+            message = request.POST.get('message', '')
+            recipient = request.POST.get('recipient', '')
+
+            if subject and message and recipient:
+                try:
+                    send_mail(subject, message, 'tu_correo@gmail.com', [recipient])
+                    messages.success(request, '¡Correo enviado exitosamente!')
+                except Exception as e:
+                    messages.error(request, f'Error al enviar el correo: {e}')
+            else:
+                messages.error(request, 'Todos los campos son obligatorios.')
+
+            return redirect('send-email')
+
+        return render(request, 'send_email.html')
+    ```
+
+- **Crear la pantalla HTML**:
+
+    Ve a [`templates/`](tasks/templates/) y crea un archivo con el nombre `send_email.html`.
+
+    Dentro de este archivo, pon el código:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block content %}
+    <div class="container mt-5">
+        <h2>Enviar Correo</h2>
+
+        {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Asunto:</label>
+                <input type="text" name="subject" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mensaje:</label>
+                <textarea name="message" class="form-control" rows="5" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Destinatario:</label>
+                <input type="email" name="recipient" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Enviar Correo</button>
+        </form>
+    </div>
+    {% endblock %}    
+    ```
+
+- **Registrar URL**:
+
+    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
+
+    ```python
+    path('send-email/', views.send_email_view, name='send-email'),
+    ```
+
+- **Agregar acceso desde sidebar**:
+
+    Para que este nuevo servicio sea accesible desde la interfaz gráfica, debes agregar un botón que te lleve a él en el sidebar. 
+
+    Ve a [`base.html`](tasks/templates/base.html) y, dentro del `<div class="sidebar">`, agrega:
+
+    ```html
+    <a href="{% url 'send-email' %}">Enviar Correo</a>
+    ```
+
+Ahora, te recomiendo que pruebes esta funcionalidad tanto con los tests como por tu cuenta para que la veas en acción. Si ejecutas las pruebas:
+
+```python
+python manage.py test
+```
+
+![Test OK](docs/images/test_ok3.png)
+
+
+Para probarlo desde la aplicación como tal:
+
+```python
+python manage.py runserver
+```
+
+![Send email](docs/images/send_email1.png)
+
+![Send email](docs/images/send_email2.png)
+
+![Send email](docs/images/send_email3.png)
+
+Como puedes ver, el correo ha llegado correctamente.
+
+
+#### Refactor: Refactorización del código de la funcionalidad para _"Envío de Correo"_
+
+En esta funcionalidad debes tener muy claro que **tanto tu correo como la contraseña que generaste desde la configuración de tu cuenta de Google son datos sensibles y nunca deberían estar al público** (al menos la contraseña). Por ende, el código que implementaste antes tiene bastante margen de mejora, pues dichos datos se encuentran quemados (lo cual no es una buena práctica para nada).
+
+En este paso de refactorización vamos a mejorarlo para que **no vayas a exponer tus datos por error**. Para este propósito, podemos usar cualquier gestor de secretos o variables de entorno que prefiramos. En este caso, usaremos el gestor de variables de entorno de Django `django-environ`, pues es una opción muy usada.
+
+- **Instalar `django-environ`**:
+
+    En caso de que no lo sepas, puedes consultar lo que es una variable de entorno en [este artículo](https://kinsta.com/es/base-de-conocimiento/variables-de-entorno). Aún así, podemos definir una variable de entorno, muy rápidamente, como un valor que tiene un nombre único asignado, y que puedes usar dentro de tus aplicaciones sin tener que quemarlo en el código.
+
+    El gestor de variables de entorno es el que se encarga de resolver la extracción de esos valores de donde sea que las hayas guardado.
+
+    Entonces, lo primero es instalar ese gestor de variables de entorno:
+
+    ```bash
+    pip install django-environ
+    pip freeze > requirements.txt
+    ```
+
+- **Crear archivo `.env`**:
+
+    Una de las formas más comunes de manejar las variables de entorno en proyectos de Python es usando un archivo `.env`. Este no es más que un archivo que contiene los nombres de las variables con sus respectivos valores.
+
+    Crea, **en la raíz del proyecto**, un archivo con el nombre '.env'.
+
+    Ahora escribe en él lo siguiente:
+    
+    ```env
+    EMAIL_HOST_USER=tu_correo@gmail.com
+    EMAIL_HOST_PASSWORD=tu_clave_o_app_password
+    ```
+
+    > **Nota:** Es **muy importante que agregues este archivo de variables de entorno al [`.gitignore`](.gitignore)**. Para hacerlo solo escribe ".env" (sin comillas) en una nueva línea.
+
+- **Modificar [`settings.py`](todo_app/settings.py)**:
+
+    Ahora debes modificar la configuración [`settings.py`](todo_app/settings.py) del proyecto para eliminar la información quemada y reemplazarla con una relación a tu [`.env`](.env).
+
+    Primero, importa el gestor de variables de entorno:
+
+    ```python
+    import environ
+    import os
+
+    env = environ.Env()
+    environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+    ```
+
+    Ahora sí, agrega la usa los valores de ese archivo:
+
+    ```python
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    ```
+
+- 
+
+- **Mejorar el estilo de la función `send_email_view()`**:
+
+    Por último, puedes mejorar un poco el estilo de la función de envío de correos agregando un comentario de documentación y unos cuantos espacios entre líneas:
+
+    ```python
+    def send_email_view(request):
+        """
+        Send an email or render the email form.
+        """
+        
+        if request.method == 'POST':
+            subject = request.POST.get('subject', '')
+            message = request.POST.get('message', '')
+            recipient = request.POST.get('recipient', '')
+
+            if subject and message and recipient:
+                try:
+                    send_mail(subject, message, 'tu_correo@gmail.com', [recipient])
+
+                    messages.success(request, '¡Correo enviado exitosamente!')
+
+                except Exception as e:
+                    messages.error(request, f'Error al enviar el correo: {e}')
+
+            else:
+                messages.error(request, 'Todos los campos son obligatorios.')
+
+            return redirect('send-email')
+
+        return render(request, 'send_email.html')
+    ```
+
+Ya quedó esta funcionalidad. Vuélvela a probar para asegurarte de que siga funcionando correctamente.
