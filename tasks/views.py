@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils import timezone
 from tasks.models import Task, Status
+from django.core.mail import send_mail
 
 
 # Create your views here.
@@ -109,3 +110,30 @@ def delete_task(request, task_id):
     messages.success(request, '¡Tarea eliminada exitosamente!')
 
     return redirect('list-tasks')
+
+
+def send_email_view(request):
+    """
+    Send an email or render the email form.
+    """
+    
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '')
+        message = request.POST.get('message', '')
+        recipient = request.POST.get('recipient', '')
+
+        if subject and message and recipient:
+            try:
+                send_mail(subject, message, 'tu_correo@gmail.com', [recipient])
+
+                messages.success(request, '¡Correo enviado exitosamente!')
+
+            except Exception as e:
+                messages.error(request, f'Error al enviar el correo: {e}')
+
+        else:
+            messages.error(request, 'Todos los campos son obligatorios.')
+
+        return redirect('send-email')
+
+    return render(request, 'send_email.html')
