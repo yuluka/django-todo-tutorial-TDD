@@ -4,6 +4,7 @@ import datetime
 from django.urls import reverse
 from django.utils import timezone
 from django.core import mail
+from django.contrib.auth.models import User
 
 # Create your tests here.
 
@@ -156,3 +157,37 @@ class SendEmailViewTest(TestCase):
         self.assertEqual(mail.outbox[0].subject, "Prueba TDD")
         self.assertEqual(mail.outbox[0].body, "Este es un mensaje de prueba")
         self.assertIn("un_correo@gmail.com", mail.outbox[0].to)
+
+
+class AuthViewsTest(TestCase):
+    """
+    Test cases for authentication views (login and logout).
+    """
+    
+    def setUp(self):
+        # Usuario de prueba
+        self.username = "testuser"
+        self.password = "testpass123"
+        self.user = User.objects.create_user(username=self.username, password=self.password)
+
+    def test_login_success(self):
+        response = self.client.post(reverse("login"), {
+            "username": self.username,
+            "password": self.password
+        })
+
+        # Verificar que el usuario esté autenticado en la sesión
+        self.assertTrue("_auth_user_id" in self.client.session)
+
+    def test_login_failure(self):
+        response = self.client.post(reverse("login"), {
+            "username": self.username,
+            "password": "wrongpass"
+        })
+
+        # No debe redirigir, debe quedarse en login
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Usuario o contraseña incorrectos")
+
+        # Verificar que no haya sesión activa
+        self.assertFalse("_auth_user_id" in self.client.session)
