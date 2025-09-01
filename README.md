@@ -1924,8 +1924,6 @@ En este paso de refactorización vamos a mejorarlo para que **no vayas a exponer
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
     ```
 
-- 
-
 - **Mejorar el estilo de la función `send_email_view()`**:
 
     Por último, puedes mejorar un poco el estilo de la función de envío de correos agregando un comentario de documentación y unos cuantos espacios entre líneas:
@@ -1959,3 +1957,263 @@ En este paso de refactorización vamos a mejorarlo para que **no vayas a exponer
     ```
 
 Ya quedó esta funcionalidad. Vuélvela a probar para asegurarte de que siga funcionando correctamente.
+
+---
+
+### Paso 5.2: Funcionalidad para _"Autenticación"_
+
+Ahora mismo, si expusieras tu aplicación al internet, cualquier persona podría entrar y modificar la información de tus tareas. Por eso, es importante la funcionalidad de autenticación, pues te permite proteger los servicios de tu aplicación detrás de un muro (el login).
+
+
+#### Red: Implementación del test para _"Autenticación"_
+
+Vamos a crear el test para la funcionalidad _"Autenticación"_. Nuevamente, vamos a hacerlo dentro de [`tests.py`](tasks/tests.py).
+
+Crea un nuevo `TestCase` para la nueva funcionalidad así:
+
+```python
+class AuthViewsTest(TestCase):
+    """
+    Test cases for authentication views (login and logout).
+    """
+    
+    def setUp(self):
+        # Usuario de prueba
+        self.username = "testuser"
+        self.password = "testpass123"
+        self.user = User.objects.create_user(username=self.username, password=self.password)
+
+    def test_login_success(self):
+        response = self.client.post(reverse("login"), {
+            "username": self.username,
+            "password": self.password
+        })
+
+        # Verificar que el usuario esté autenticado en la sesión
+        self.assertTrue("_auth_user_id" in self.client.session)
+
+    def test_login_failure(self):
+        response = self.client.post(reverse("login"), {
+            "username": self.username,
+            "password": "wrongpass"
+        })
+
+        # No debe redirigir, debe quedarse en login
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Usuario o contraseña incorrectos")
+
+        # Verificar que no haya sesión activa
+        self.assertFalse("_auth_user_id" in self.client.session)
+```
+
+Igual que con las tareas, necesitamos un modelo de datos para representar a los usuarios. Por suerte para nosotros, no hace falta crearlo, pues Django ya incluye uno. Lo que sí debemos hacer es importarlo dentro del archivo de pruebas:
+
+```python
+from django.contrib.auth.models import User
+```
+
+Ahora bien, esta vez creamos dos pruebas para la misma funcionalidad, pues ambos casos son de suma importancia:
+
+- El primero trata de hacer la autenticación con las credenciales de un usuario creado en el `setUp()`, y luego verifica que todo haya salido bien.
+- El segundo trata de hacer la autenticación con credenciales erróneas, y luego verifica que la aplicación no le haya dado acceso (lo que es casi más importante que el caso anterior).
+
+
+#### Green: Implementación de la funcionalidad para _"Autenticación"_
+
+Para la implementación de la autenticación debemos, nuevamente, hacer cambios en varias partes del proyecto:
+
+- **Configurar la autenticación en ['settings.py'](todo_app/settings.py)**:
+
+    Ve al archivo de configuración ['settings.py'](todo_app/settings.py) y agrega:
+
+    ```python
+    LOGIN_URL = "login" # Ruta del servicio de login
+    LOGIN_REDIRECT_URL = "home" # A dónde redirigir al usuario tras login
+    LOGOUT_REDIRECT_URL = "login" # A dónde redirigir al usuario tras logout
+    ```
+
+- **Crear vista**:
+
+    En este caso, Django también incluye una función para la autenticación de usuarios, por lo que debemos importarla dentro de [`views.py`](tasks/views.py) para poder usarla:
+
+    ```python
+    from django.contrib.auth import authenticate, login, logout
+    ```
+
+    Ahora lo único que tenemos que hacer es implementar la vista que se encarga de pedirle a la función de Django el login:
+
+    ```python
+    def user_login(request):
+        if request.method == "POST":
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+            user = authenticate(request, username=username, password=password)
+
+            if user:
+                login(request, user)
+
+                return redirect("home")  # Redirige a la página de inicio
+            
+            else:
+                messages.error(request, "Usuario o contraseña incorrectos")
+
+        return render(request, "login.html")
+
+    def user_logout(request):
+        logout(request)
+
+        return redirect("login")
+    ```
+
+- **Crear la pantalla HTML**:
+
+    Ve a [`templates.py`](tasks/templates/) y crea un archivo con el nombre `login.html`.
+
+    Dentro de este archivo, pon el código:
+
+    ```html
+    {% extends "base.html" %}
+
+    {% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center">Iniciar Sesión</h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Usuario</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    ```
+
+    Ahora, dentro del template base [`base.html`](tasks/templates/base.html), modifica el sidebar para que solo se muestre si el usuario está logeado, y agrega un botón para logout. Debería quedar así el sidebar:
+
+    ```html
+    {% if user.is_authenticated %}
+    <div class="sidebar">
+        <h4 class="text-white text-center">To-Do App</h4>
+        <a href="{% url 'list-tasks' %}">Ver Tareas</a>
+        <a href="{% url 'create-task' %}">Crear Tarea</a>
+        <a href="{% url 'send-email' %}">Enviar Correo</a>
+        
+        <div class="logout-btn">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger w-100">Cerrar Sesión</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    ```
+    
+- **Registrar URL**:
+
+    Ve al archivo de [URLs](tasks/urls.py) y agrega la ruta así:
+
+    ```python
+    path('login/', views.user_login, name='login'),
+    path('logout/', views.user_logout, name='logout'),
+    ```
+
+Ahora, si ejecutas las pruebas:
+
+```bash
+python manage.py test
+```
+
+![Test OK](docs/images/test_ok4.png)
+
+
+Si lo pruebas desde la aplicación como tal:
+
+
+```bash
+python manage.py runserver
+```
+
+![Login](docs/images/login1.png)
+
+![Login](docs/images/login2.png)
+
+> **Nota:** En este caso, te vas a logear con el súper usuario que creaste antes. 
+
+
+#### Refactor: Refactorización del código de la funcionalidad para _"Autenticación"_
+
+Ya has implementado la funcionalidad de login, y has visto que funciona correctamente. Sin embargo, si ejecutas la aplicación y escribes la ruta de alguno de los servicios antes implementados, verás que puedes entrar sin problema, ni necesidad de hacer el login. 
+
+Por esto, en este paso vamos a refactorizar el código que hicimos, y protegeremos los servicios para que sean accesibles solo si el usuario está logeado:
+
+- **Proteger servicios**:
+
+    Para indicarle a Django que un servicio debe estar disponible solo para usuarios logeados, debemos usar el decorador `@login_required` sobre las vistas que deseemos proteger (en [`views.py`](tasks/views.py)). Por supuesto que, para poder usarlo, es necesario importarlo:
+
+    ```python
+    from django.contrib.auth.decorators import login_required
+    ```
+
+    Ahora vamos a ponerlo sobre las vistas que queramos proteger (todas en este caso):
+
+    ```python
+    @login_required
+    def home(request):
+        return render(request, 'home.html')
+    ```
+
+    > **Nota:** Agrega el decorador `@login_required` sobre todas las vistas excepto sobre las referentes a login y logut.
+
+- **Mejorar estilo de vistas**:
+
+    Solo resta mejorar un poco el estilo del código de las vistas de login y logout:
+
+    ```python
+    def user_login(request):
+        """
+        Handle user login.
+        """
+
+        if request.method == "POST":
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+            user = authenticate(request, username=username, password=password)
+
+            if user:
+                login(request, user)
+
+                return redirect("home")  # Redirige a la página de inicio
+            
+            else:
+                messages.error(request, "Usuario o contraseña incorrectos")
+
+        return render(request, "login.html")
+
+
+    def user_logout(request):
+        """
+        Handle user logout.
+        """
+
+        logout(request)
+
+        return redirect("login")
+    ```
+
+Perfecto, ya ha quedado esta funcionalidad. Pruébala y trata de saltarte el login.

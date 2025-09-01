@@ -4,9 +4,12 @@ from django.contrib import messages
 from django.utils import timezone
 from tasks.models import Task, Status
 from django.core.mail import send_mail
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
+@login_required
 def home(request):
     return render(request, 'home.html')
 
@@ -27,6 +30,7 @@ def parse_deadline(deadline_str: str) -> datetime.datetime | None:
         return None
 
 
+@login_required
 def create_task(request):
     """
     Create a new task or render the creation form.
@@ -54,6 +58,7 @@ def create_task(request):
     return render(request, 'create_task.html')
 
 
+@login_required
 def list_tasks(request):
     """
     List all tasks.
@@ -68,6 +73,7 @@ def list_tasks(request):
     )
 
 
+@login_required
 def edit_task(request, task_id):
     """
     Edit an existing task or render the edit form.
@@ -100,6 +106,7 @@ def edit_task(request, task_id):
     )
 
 
+@login_required
 def delete_task(request, task_id):
     """
     Delete an existing task.
@@ -112,11 +119,12 @@ def delete_task(request, task_id):
     return redirect('list-tasks')
 
 
+@login_required
 def send_email_view(request):
     """
     Send an email or render the email form.
     """
-    
+
     if request.method == 'POST':
         subject = request.POST.get('subject', '')
         message = request.POST.get('message', '')
@@ -137,3 +145,34 @@ def send_email_view(request):
         return redirect('send-email')
 
     return render(request, 'send_email.html')
+
+
+def user_login(request):
+    """
+    Handle user login.
+    """
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(request, username=username, password=password)
+
+        if user:
+            login(request, user)
+
+            return redirect("home")  # Redirige a la página de inicio
+        
+        else:
+            messages.error(request, "Usuario o contraseña incorrectos")
+
+    return render(request, "login.html")
+
+
+def user_logout(request):
+    """
+    Handle user logout.
+    """
+
+    logout(request)
+
+    return redirect("login")

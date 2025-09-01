@@ -136,3 +136,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+LOGIN_URL = "login" # Ruta del servicio de login
+LOGIN_REDIRECT_URL = "home" # A dónde redirigir al usuario tras login
+LOGOUT_REDIRECT_URL = "login" # A dónde redirigir al usuario tras logout
